@@ -190,7 +190,10 @@ class ModelBasedPolicy(object):
         """
         ### PROBLEM 1
         ### YOUR CODE HERE
-        loss, _ = self._sess.run([self._loss, self._optimizer], feed_dict={self._state_ph: states, self._action_ph: actions, self._next_state_ph: next_states})
+        loss, _ = self._sess.run(
+            [self._loss, self._optimizer],
+            feed_dict={self._state_ph: states, self._action_ph: actions, self._next_state_ph: next_states}
+        )
 
         return loss
 
