@@ -155,7 +155,34 @@ class ModelBasedPolicy(object):
         """
         ### PROBLEM 2
         ### YOUR CODE HERE
-        raise NotImplementedError
+        # (b) Randomly sample uniformly self._num_random_action_selection number of action sequences,
+        # each of length self._horizon
+        possible_action_sequences = tf.random_uniform(
+            shape=[self._num_random_action_selection, self._horizon, self._action_dim],
+            minval=self._action_space_low,
+            maxval=self._action_space_high,
+        )
+        # initialize cost per possible sequence to be zero
+        cost_per_sequence = tf.zeros([self._num_random_action_selection])
+        # since initial state has batch dimension of 1, need to repeat it
+        # self._num_random_action_selection times
+        states = tf.ones([self._num_random_action_selection, self._state_dim]) * state_ph
+
+        for i in range(self._horizon):
+            actions = possible_action_sequences[:, i]
+            # (c) Starting from the input state, unroll each action sequence using your neural network
+            # dynamics model
+            next_states = self._dynamics_func(states, actions, reuse=True)
+
+            # (d) While unrolling the action sequences, keep track of the cost of each action sequence
+            # using self._cost_fn
+            cost_per_sequence += self._cost_fn(states, actions, next_states)
+
+            states = next_states
+
+        # (e) Find the action sequence with the lowest cost, and return the first action in that sequence
+        lowest_cost_sequence = tf.argmin(cost_per_sequence)
+        best_action = possible_action_sequences[lowest_cost_sequence, 0]
 
         return best_action
 
@@ -174,7 +201,7 @@ class ModelBasedPolicy(object):
         loss, optimizer = self._setup_training(state_ph, next_state_ph, next_state_pred)
         ### PROBLEM 2
         ### YOUR CODE HERE
-        best_action = None
+        best_action = self._setup_action_selection(state_ph)
 
         sess.run(tf.global_variables_initializer())
 
@@ -229,7 +256,7 @@ class ModelBasedPolicy(object):
 
         ### PROBLEM 2
         ### YOUR CODE HERE
-        raise NotImplementedError
+        best_action = self._sess.run(self._best_action, feed_dict={self._state_ph: [state]})
 
         assert np.shape(best_action) == (self._action_dim,)
         return best_action
