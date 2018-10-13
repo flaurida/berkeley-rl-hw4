@@ -1,0 +1,5 @@
+plots/
+data/
+env/
+.vscode/
+__pycache__/
